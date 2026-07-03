@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { wizardReducer, initialWizardState } from "./wizardReducer";
 import { createDraftRequest, updateDraftRequest, submitRequest, getRequestById } from "../../api/actions/requests";
@@ -59,8 +59,12 @@ export function NewRequestWizard() {
   const [searchParams] = useSearchParams();
   const draftId = searchParams.get("draftId");
   const navigate = useNavigate();
+  const didInit = useRef(false);
 
   useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
+
     async function init() {
       try {
         const request = draftId ? await getRequestById(draftId) : await createDraftRequest();
