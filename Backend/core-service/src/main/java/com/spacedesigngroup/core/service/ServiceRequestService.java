@@ -248,7 +248,7 @@ public class ServiceRequestService {
                 r.getSpatialNotes(),
                 r.getBudgetMin(),
                 r.getBudgetMax(),
-                r.getStyleTags(),
+                new java.util.ArrayList<>(r.getStyleTags()),
                 r.isWorksFromHome(),
                 r.isEntertainsOften(),
                 r.isHasKids(),
