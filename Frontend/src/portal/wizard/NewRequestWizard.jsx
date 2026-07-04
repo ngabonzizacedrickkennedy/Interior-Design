@@ -1,6 +1,7 @@
 import { useEffect, useReducer, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { wizardReducer, initialWizardState } from "./wizardReducer";
+import { saveStep, readSavedStep, saveFields, readSavedFields, clearWizardProgress } from "./wizardStepStorage";
 import { createDraftRequest, updateDraftRequest, submitRequest, getRequestById } from "../../api/actions/requests";
 import { useToast } from "../../components/toast/ToastContext";
 import { WizardProgressBar } from "./WizardProgressBar";
@@ -72,6 +73,19 @@ export function NewRequestWizard() {
       try {
         const request = draftId ? await getRequestById(draftId) : await createDraftRequest();
         dispatch({ type: "HYDRATE", request });
+
+        if (!draftId) {
+          navigate(`/portal/requests/new?draftId=${request.id}`, { replace: true });
+        } else {
+          const savedStep = readSavedStep(request.id);
+          if (savedStep !== null) {
+            dispatch({ type: "SET_STEP", step: Math.max(0, Math.min(savedStep, STEPS.length - 1)) });
+          }
+          const savedFields = readSavedFields(request.id);
+          if (savedFields) {
+            dispatch({ type: "APPLY_LOCAL_FIELDS", fields: savedFields });
+          }
+        }
       } catch (err) {
         dispatch({ type: "SET_ERROR", error: err.message });
         dispatch({ type: "SET_LOADING", value: false });
@@ -80,6 +94,18 @@ export function NewRequestWizard() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!state.loading && state.requestId) {
+      saveStep(state.requestId, state.step);
+    }
+  }, [state.step, state.requestId, state.loading]);
+
+  useEffect(() => {
+    if (!state.loading && state.requestId) {
+      saveFields(state.requestId, state.fields);
+    }
+  }, [state.fields, state.requestId, state.loading]);
 
   function setField(field, value) {
     dispatch({ type: "SET_FIELD", field, value });
@@ -116,6 +142,7 @@ export function NewRequestWizard() {
     try {
       await updateDraftRequest(state.requestId, buildWizardPayload(state.fields));
       await submitRequest(state.requestId);
+      clearWizardProgress(state.requestId);
       showSuccess("Request submitted successfully!");
       navigate("/portal/dashboard");
     } catch (err) {

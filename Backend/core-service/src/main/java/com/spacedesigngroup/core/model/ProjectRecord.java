@@ -19,6 +19,10 @@ public class ProjectRecord {
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
+    private ServiceRequest request;
+
     @Column(columnDefinition = "TEXT")
     private String milestoneChecklistJson;
 

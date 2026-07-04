@@ -6,8 +6,8 @@ import { getRequestsByClient } from "../../api/actions/requests";
 import "../PortalLayout.css";
 
 const BADGE = {
-  DRAFT: "draft", PENDING_APPROVAL: "pending",
-  APPROVED: "approved", CHANGE_REQUESTED: "change",
+  DRAFT: "draft", AWAITING_ADMIN_REVIEW: "ai-review", PENDING_APPROVAL: "pending",
+  APPROVED: "approved", CHANGE_REQUESTED: "change", REJECTED: "rejected",
 };
 
 export function Quotations() {
@@ -69,6 +69,7 @@ export function Quotations() {
   }
 
   const approved = quotations.filter((q) => q.approvalState === "APPROVED").length;
+  const awaitingReview = quotations.filter((q) => q.approvalState === "AWAITING_ADMIN_REVIEW").length;
 
   return (
     <div>
@@ -83,12 +84,16 @@ export function Quotations() {
         <div className="portal-role-banner" style={{ marginBottom: "1.75rem" }}>
           <div className="portal-role-banner__text">
             <h2>Quotation Overview</h2>
-            <p>Manage pricing, line items, tax calculations, and client approvals.</p>
+            <p>Review AI-recommended estimates, admit or deny them, and track client approvals.</p>
           </div>
           <div className="portal-role-banner__stats">
             <div className="portal-role-banner__stat">
               <span className="portal-role-banner__stat-value">{quotations.length}</span>
               <span className="portal-role-banner__stat-label">Total</span>
+            </div>
+            <div className="portal-role-banner__stat">
+              <span className="portal-role-banner__stat-value">{awaitingReview}</span>
+              <span className="portal-role-banner__stat-label">Awaiting AI Review</span>
             </div>
             <div className="portal-role-banner__stat">
               <span className="portal-role-banner__stat-value">{approved}</span>
@@ -107,15 +112,24 @@ export function Quotations() {
 
       {!loading && quotations.map((q) => {
         const open = openId === q.id;
+        const awaitingAdminReview = q.approvalState === "AWAITING_ADMIN_REVIEW";
+        const editable = canEdit && q.approvalState === "DRAFT";
         return (
-          <section key={q.id} className="portal-section">
+          <section key={q.id} className={"portal-section" + (awaitingAdminReview ? " is-highlighted" : "")}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: open ? "1.25rem" : 0 }}>
               <div>
                 <h2 className="portal-section__title" style={{ border: "none", marginBottom: "0.4rem" }}>
                   {q.clientName}
+                  {q.aiGenerated && (
+                    <span style={{ marginLeft: "0.6rem", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.04em",
+                      color: "var(--color-accent)", border: "1px solid var(--color-accent)",
+                      borderRadius: 999, padding: "0.1rem 0.55rem", verticalAlign: "middle" }}>
+                      AI ESTIMATE
+                    </span>
+                  )}
                 </h2>
                 <span className={`badge badge--${BADGE[q.approvalState] || "draft"}`}>
-                  {q.approvalState?.replace("_", " ")}
+                  {q.approvalState?.replace(/_/g, " ")}
                 </span>
                 <span style={{ marginLeft: "0.75rem", fontSize: "0.85rem", color: "var(--color-ink-soft)" }}>
                   {q.lineItems?.length || 0} line items &bull; Total: {q.finalTotal?.toLocaleString()} RWF
@@ -129,49 +143,83 @@ export function Quotations() {
 
             {open && (
               <>
-                <div className="portal-table-wrap">
-                  <table className="portal-table">
-                    <thead>
-                      <tr>
-                        <th>Description</th>
-                        <th style={{ textAlign: "right" }}>Cost (RWF)</th>
-                        {canEdit && <th style={{ width: 80 }}></th>}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {(q.lineItems || []).map((li) => (
-                        <tr key={li.id}>
-                          <td>{li.itemDescription}</td>
-                          <td style={{ textAlign: "right" }}>{li.baseCost?.toLocaleString()}</td>
-                          {canEdit && (
-                            <td>
-                              <button className="btn" style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem" }}
-                                onClick={() => removeItem(q.id, li.id)}>
-                                Remove
-                              </button>
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td style={{ color: "var(--color-ink-soft)", fontSize: "0.85rem" }}>Tax (18%)</td>
-                        <td style={{ textAlign: "right" }}>{q.calculatedTax?.toLocaleString()}</td>
-                        {canEdit && <td></td>}
-                      </tr>
-                      <tr>
-                        <td style={{ fontWeight: 700, fontFamily: "var(--font-display)" }}>Total</td>
-                        <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-accent)", fontFamily: "var(--font-display)", fontSize: "1.1rem" }}>
-                          {q.finalTotal?.toLocaleString()} RWF
-                        </td>
-                        {canEdit && <td></td>}
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                {q.aiGenerated && (
+                  <div style={{
+                    background: "var(--color-bg-alt)", border: "1px solid var(--color-line)",
+                    borderRadius: 8, padding: "1rem 1.25rem", marginBottom: "1.25rem",
+                  }}>
+                    <p style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.4rem" }}>
+                      AI Recommendation
+                      <span style={{ marginLeft: "0.5rem", fontWeight: 500, color: "var(--color-ink-soft)" }}>
+                        Verdict: {q.aiVerdict === "SUFFICIENT" ? "Client budget is sufficient" : "Client budget needs to be raised"}
+                      </span>
+                    </p>
+                    <p style={{ fontSize: "0.875rem", color: "var(--color-ink-soft)", margin: "0 0 0.5rem" }}>
+                      {q.aiReasoning}
+                    </p>
+                    <p style={{ fontSize: "0.95rem", fontWeight: 600, margin: 0 }}>
+                      Recommended amount: {Number(q.aiRecommendedAmount || 0).toLocaleString()} RWF
+                    </p>
 
-                {canEdit && q.approvalState !== "APPROVED" && (
+                    {awaitingAdminReview && canEdit && (
+                      <div className="portal-actions" style={{ marginTop: "1rem" }}>
+                        <button className="btn btn-solid" onClick={() => doAction(q.id, quotationActions.admitQuotation)}>
+                          Admit
+                        </button>
+                        <button className="btn" style={{ color: "#dc2626", borderColor: "#dc2626" }}
+                          onClick={() => doAction(q.id, quotationActions.denyQuotation)}>
+                          Deny
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!awaitingAdminReview && (
+                  <div className="portal-table-wrap">
+                    <table className="portal-table">
+                      <thead>
+                        <tr>
+                          <th>Description</th>
+                          <th style={{ textAlign: "right" }}>Cost (RWF)</th>
+                          {editable && <th style={{ width: 80 }}></th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(q.lineItems || []).map((li) => (
+                          <tr key={li.id}>
+                            <td>{li.itemDescription}</td>
+                            <td style={{ textAlign: "right" }}>{li.baseCost?.toLocaleString()}</td>
+                            {editable && (
+                              <td>
+                                <button className="btn" style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem" }}
+                                  onClick={() => removeItem(q.id, li.id)}>
+                                  Remove
+                                </button>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <td style={{ color: "var(--color-ink-soft)", fontSize: "0.85rem" }}>Tax (18%)</td>
+                          <td style={{ textAlign: "right" }}>{q.calculatedTax?.toLocaleString()}</td>
+                          {editable && <td></td>}
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 700, fontFamily: "var(--font-display)" }}>Total</td>
+                          <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-accent)", fontFamily: "var(--font-display)", fontSize: "1.1rem" }}>
+                            {q.finalTotal?.toLocaleString()} RWF
+                          </td>
+                          {editable && <td></td>}
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+
+                {editable && (
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem", flexWrap: "wrap" }}>
                     <input style={{ flex: 2, minWidth: 160 }} placeholder="Line item description"
                       value={newItem.itemDescription}
@@ -183,28 +231,34 @@ export function Quotations() {
                   </div>
                 )}
 
-                <div className="portal-actions" style={{ marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--color-line)" }}>
-                  {(isClient || canEdit) && (
-                    <button className="btn btn-solid"
-                      disabled={q.approvalState === "APPROVED"}
-                      onClick={() => doAction(q.id, quotationActions.approveQuotation)}>
-                      {q.approvalState === "APPROVED" ? "Approved" : "Approve Quotation"}
-                    </button>
-                  )}
-                  {(isClient || canEdit) && (
-                    <button className="btn"
-                      disabled={q.approvalState === "CHANGE_REQUESTED"}
-                      onClick={() => doAction(q.id, quotationActions.requestQuotationChange)}>
-                      Request Changes
-                    </button>
-                  )}
-                  {canEdit && q.approvalState === "DRAFT" && (
-                    <button className="btn"
-                      onClick={() => doAction(q.id, quotationActions.submitQuotation)}>
+                {q.approvalState === "PENDING_APPROVAL" && (
+                  <div className="portal-actions" style={{ marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--color-line)" }}>
+                    {(isClient || canEdit) && (
+                      <button className="btn btn-solid" onClick={() => doAction(q.id, quotationActions.approveQuotation)}>
+                        Approve Quotation
+                      </button>
+                    )}
+                    {isClient && (
+                      <button className="btn" style={{ color: "#dc2626", borderColor: "#dc2626" }}
+                        onClick={() => doAction(q.id, quotationActions.rejectQuotation)}>
+                        Deny
+                      </button>
+                    )}
+                    {(isClient || canEdit) && (
+                      <button className="btn" onClick={() => doAction(q.id, quotationActions.requestQuotationChange)}>
+                        Request Changes
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {editable && q.lineItems?.length > 0 && (
+                  <div className="portal-actions" style={{ marginTop: "1.25rem", paddingTop: "1rem", borderTop: "1px solid var(--color-line)" }}>
+                    <button className="btn" onClick={() => doAction(q.id, quotationActions.submitQuotation)}>
                       Send to Client
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </>
             )}
           </section>

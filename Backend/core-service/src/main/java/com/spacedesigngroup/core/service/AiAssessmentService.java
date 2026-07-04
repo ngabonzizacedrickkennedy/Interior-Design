@@ -25,6 +25,7 @@ public class AiAssessmentService {
     private final ServiceRequestService serviceRequestService;
     private final AiServiceClient aiServiceClient;
     private final S3Service s3Service;
+    private final AiAssessRequestPayloadFactory payloadFactory;
 
     public AiAssessmentResponse trigger(Long requestId, User caller) {
         ServiceRequest request = serviceRequestService.getOwnedOrThrow(requestId, caller);
@@ -34,7 +35,7 @@ public class AiAssessmentService {
             throw new IllegalArgumentException("At least one room photo is required before requesting an assessment");
         }
 
-        AiAssessRequestPayload payload = buildPayload(request);
+        AiAssessRequestPayload payload = payloadFactory.build(request);
         AiAssessResultPayload result = aiServiceClient.assess(payload);
 
         AssessmentVerdict verdict = AssessmentVerdict.valueOf(result.verdict());
@@ -90,47 +91,6 @@ public class AiAssessmentService {
         });
 
         return serviceRequestService.toResponseById(request.getId());
-    }
-
-    private AiAssessRequestPayload buildPayload(ServiceRequest request) {
-        AiDimensionsPayload dimensions = new AiDimensionsPayload(
-                request.getLengthMeters(),
-                request.getWidthMeters(),
-                request.getCeilingHeightMeters(),
-                request.getSpatialNotes()
-        );
-        AiSpaceUsagePayload spaceUsage = new AiSpaceUsagePayload(
-                request.isWorksFromHome(),
-                request.isEntertainsOften(),
-                request.isHasKids(),
-                request.isHasPets(),
-                request.getStorageNeeds()
-        );
-        AiLightingPayload lighting = new AiLightingPayload(
-                request.getWindowDirection() != null ? request.getWindowDirection().name() : null,
-                request.getNaturalLightLevel() != null ? request.getNaturalLightLevel().name() : null,
-                request.getArtificialLightingNotes()
-        );
-        List<String> styleTags = request.getStyleTags().stream().map(Enum::name).toList();
-        List<AiAttachmentPayload> attachments = attachmentRepository.findByRequestId(request.getId()).stream()
-                .map(a -> new AiAttachmentPayload(a.getCategory().name(), s3Service.publicUrl(a.getS3Key()), a.getNote()))
-                .toList();
-
-        return new AiAssessRequestPayload(
-                request.getId(),
-                request.getRoomType(),
-                request.getRequestDetails(),
-                dimensions,
-                request.getBudgetMin(),
-                request.getBudgetMax(),
-                styleTags,
-                spaceUsage,
-                lighting,
-                request.getTimeline() != null ? request.getTimeline().name() : null,
-                request.getAvoidNotes(),
-                request.getSourcingLocation(),
-                attachments
-        );
     }
 
     private AiAssessmentResponse toResponse(AiAssessment a) {

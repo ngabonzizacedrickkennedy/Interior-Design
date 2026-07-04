@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getMyRequests } from "../../api/actions/requests";
-import { triggerAssessment, remainAssessment, adjustBudget } from "../../api/actions/assessments";
+import { triggerAssessment, remainAssessment } from "../../api/actions/assessments";
 import { deriveDisplayStatus } from "../utils/requestStatus";
 import { buildAssessmentSpeech, speak } from "../utils/speech";
 import { AssessmentResultPanel } from "../components/AssessmentResultPanel";
-import { AdjustBudgetModal } from "../components/AdjustBudgetModal";
 import "../PortalLayout.css";
 import "./assessments.css";
 
@@ -15,7 +14,6 @@ export function Assessments() {
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("not_assessed");
   const [assessingId, setAssessingId] = useState(null);
-  const [adjustTarget, setAdjustTarget] = useState(null);
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -62,12 +60,6 @@ export function Assessments() {
     }
   }
 
-  async function handleAdjustSubmit(amount) {
-    await adjustBudget(adjustTarget.requestId, amount);
-    setAdjustTarget(null);
-    await load();
-  }
-
   const notAssessed = requests.filter((r) => deriveDisplayStatus(r) === "NOT_ASSESSED");
   const assessed = requests.filter((r) => ["ASSESSED", "INVESTED"].includes(deriveDisplayStatus(r)));
   const highlightId = Number(searchParams.get("requestId")) || null;
@@ -76,8 +68,9 @@ export function Assessments() {
     <div>
       <h1 className="portal-page-title">Assessments</h1>
       <p className="portal-page-sub">
-        Have our AI analyze your uploaded photos, references, and description to check whether
-        your budget matches what you're asking for.
+        Our AI already analyzed your uploaded photos, references, and description when you
+        submitted this request, and sent its estimate straight to our team. Assess again any
+        time to review the recommendation.
       </p>
 
       {error && <p className="portal-error">{error}</p>}
@@ -128,23 +121,9 @@ export function Assessments() {
             <AssessmentResultPanel
               assessment={r.latestAssessment}
               onRemain={() => handleRemain(r.id, r.latestAssessment.id)}
-              onAdjust={() =>
-                setAdjustTarget({
-                  requestId: r.id,
-                  recommended: r.latestAssessment.recommendedBudgetMax || r.latestAssessment.recommendedBudgetMin,
-                })
-              }
             />
           </section>
         ))
-      )}
-
-      {adjustTarget && (
-        <AdjustBudgetModal
-          defaultAmount={adjustTarget.recommended}
-          onCancel={() => setAdjustTarget(null)}
-          onSubmit={handleAdjustSubmit}
-        />
       )}
     </div>
   );

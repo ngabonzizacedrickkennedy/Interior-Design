@@ -37,6 +37,16 @@ public class Quotation {
     private QuotationStatus approvalState = QuotationStatus.DRAFT;
 
     @Builder.Default
+    private boolean aiGenerated = false;
+
+    private String aiVerdict;
+
+    @Column(columnDefinition = "TEXT")
+    private String aiReasoning;
+
+    private BigDecimal aiRecommendedAmount;
+
+    @Builder.Default
     @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuotationLineItem> lineItems = new ArrayList<>();
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { isSpeechSupported, isVoiceMuted, setVoiceMuted, stopSpeaking } from "../utils/speech";
 
-export function AssessmentResultPanel({ assessment, onRemain, onAdjust }) {
+export function AssessmentResultPanel({ assessment, onRemain }) {
   const [muted, setMuted] = useState(isVoiceMuted());
 
   useEffect(() => () => stopSpeaking(), []);
@@ -42,9 +42,13 @@ export function AssessmentResultPanel({ assessment, onRemain, onAdjust }) {
 
       {isPendingDecision && (
         <div className="portal-actions" style={{ marginTop: "1rem" }}>
-          <button type="button" className="btn btn-solid" onClick={onAdjust}>Adjust Budget</button>
           <button type="button" className="btn" onClick={onRemain}>Remain</button>
         </div>
+      )}
+      {assessment.verdict === "INSUFFICIENT" && (
+        <p style={{ marginTop: "1rem", fontSize: "0.85rem", color: "var(--color-ink-soft)" }}>
+          This estimate has been sent to our team, who will follow up with a quotation if your budget needs adjusting.
+        </p>
       )}
     </div>
   );

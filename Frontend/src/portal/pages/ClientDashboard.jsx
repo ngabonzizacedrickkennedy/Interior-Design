@@ -4,6 +4,7 @@ import { getMyRequests, withdrawRequest } from "../../api/actions/requests";
 import { StatTile } from "../components/StatTile";
 import { RequestCard } from "../components/RequestCard";
 import { deriveDisplayStatus } from "../utils/requestStatus";
+import { clearWizardProgress } from "../wizard/wizardStepStorage";
 import "../PortalLayout.css";
 import "./dashboard.css";
 
@@ -32,6 +33,7 @@ export function ClientDashboard() {
     if (!confirm("Withdraw this request? This cannot be undone.")) return;
     try {
       await withdrawRequest(id);
+      clearWizardProgress(id);
       setRequests((r) => r.filter((x) => x.id !== id));
     } catch (e) {
       setError(e.message);

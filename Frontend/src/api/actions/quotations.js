@@ -9,3 +9,6 @@ export const removeLineItem = (id, itemId) => api.delete(`/quotations/${id}/line
 export const submitQuotation = (id) => api.patch(`/quotations/${id}/submit`);
 export const approveQuotation = (id) => api.patch(`/quotations/${id}/approve`);
 export const requestQuotationChange = (id) => api.patch(`/quotations/${id}/request-change`);
+export const admitQuotation = (id) => api.patch(`/quotations/${id}/admit`);
+export const denyQuotation = (id) => api.patch(`/quotations/${id}/deny`);
+export const rejectQuotation = (id) => api.patch(`/quotations/${id}/reject`);

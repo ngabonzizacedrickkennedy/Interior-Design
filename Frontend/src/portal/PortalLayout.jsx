@@ -27,7 +27,7 @@ const ROLE_MENUS = {
     { to: "notifications", label: "Notifications" },
   ],
   PROJECT_MANAGER: [
-    { to: "clients",       label: "Client Management" },
+    { to: "clients",       label: "User Management" },
     { to: "requests",      label: "Service Requests" },
     { to: "quotations",    label: "Quotations" },
     { to: "projects",      label: "Project Management" },
@@ -38,7 +38,7 @@ const ROLE_MENUS = {
     { to: "notifications", label: "Notifications" },
   ],
   ADMIN: [
-    { to: "clients",       label: "Client Management" },
+    { to: "clients",       label: "User Management" },
     { to: "requests",      label: "Service Requests" },
     { to: "quotations",    label: "Quotations" },
     { to: "projects",      label: "Project Management" },

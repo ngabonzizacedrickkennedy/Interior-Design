@@ -13,5 +13,9 @@ public record QuotationResponse(
         BigDecimal priceSubtotal,
         BigDecimal calculatedTax,
         BigDecimal finalTotal,
-        QuotationStatus approvalState
+        QuotationStatus approvalState,
+        boolean aiGenerated,
+        String aiVerdict,
+        String aiReasoning,
+        BigDecimal aiRecommendedAmount
 ) {}

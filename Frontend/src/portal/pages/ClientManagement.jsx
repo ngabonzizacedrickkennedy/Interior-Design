@@ -1,6 +1,7 @@
 import { Fragment, useState, useEffect } from "react";
 import { useAuth } from "../auth/AuthContext";
 import * as clientActions from "../../api/actions/clients";
+import * as adminActions from "../../api/actions/admin";
 import "../PortalLayout.css";
 
 export function ClientManagement() {
@@ -17,9 +18,13 @@ export function ClientManagement() {
   const [newForm, setNewForm] = useState({
     contactName: "", contactEmail: "", contactPhone: "", propertyType: "House",
   });
+  const [showManagerForm, setShowManagerForm] = useState(false);
+  const [managerForm, setManagerForm] = useState({ fullName: "", email: "", password: "" });
+  const [managerMessage, setManagerMessage] = useState(null);
 
-  const canEdit   = user?.role === "PROJECT_MANAGER" || user?.role === "ADMIN";
-  const canCreate = user?.role === "ADMIN";
+  const canEdit    = user?.role === "PROJECT_MANAGER" || user?.role === "ADMIN";
+  const canCreate  = user?.role === "ADMIN";
+  const isAdmin    = user?.role === "ADMIN";
 
   useEffect(() => {
     clientActions.getAllClients()
@@ -36,6 +41,19 @@ export function ClientManagement() {
       setNewForm({ contactName: "", contactEmail: "", contactPhone: "", propertyType: "House" });
       setShowNewForm(false);
     } catch (e) { setError(e.message); }
+  }
+
+  async function handleCreateManager(e) {
+    e.preventDefault();
+    setManagerMessage(null);
+    try {
+      const created = await adminActions.createManager(managerForm);
+      setManagerMessage({ type: "success", text: `Manager account created for ${created.fullName}.` });
+      setManagerForm({ fullName: "", email: "", password: "" });
+      setShowManagerForm(false);
+    } catch (e) {
+      setManagerMessage({ type: "error", text: e.message });
+    }
   }
 
   async function handleSave(id) {
@@ -66,8 +84,8 @@ export function ClientManagement() {
 
   return (
     <div>
-      <h1 className="portal-page-title">Client Management</h1>
-      <p className="portal-page-sub">Register clients, manage profiles, and review communication history.</p>
+      <h1 className="portal-page-title">User Management</h1>
+      <p className="portal-page-sub">Register clients, create manager accounts, and review communication history.</p>
 
       <div className="portal-stat-grid" style={{ marginBottom: "1.5rem" }}>
         <div className="portal-stat-card">
@@ -83,6 +101,58 @@ export function ClientManagement() {
       </div>
 
       {error && <p className="portal-error">{error}</p>}
+
+      {isAdmin && (
+        <section className="portal-section" style={{
+          marginBottom: "1.75rem",
+          background: "linear-gradient(135deg, var(--color-accent-soft, #f5f0ff), var(--color-bg-alt))",
+          border: "1px solid var(--color-accent)",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.75rem" }}>
+            <div>
+              <h2 className="portal-section__title" style={{ border: "none", marginBottom: "0.25rem" }}>
+                Manager Accounts
+              </h2>
+              <p style={{ color: "var(--color-ink-soft)", fontSize: "0.875rem", margin: 0 }}>
+                Only administrators can create Project Manager accounts.
+              </p>
+            </div>
+            <button className="btn btn-solid" onClick={() => setShowManagerForm((v) => !v)}>
+              {showManagerForm ? "Cancel" : "+ Create Manager"}
+            </button>
+          </div>
+
+          {managerMessage && (
+            <p className={managerMessage.type === "error" ? "portal-error" : "portal-success"}
+              style={{ marginTop: "1rem" }}>
+              {managerMessage.text}
+            </p>
+          )}
+
+          {showManagerForm && (
+            <form onSubmit={handleCreateManager} style={{ marginTop: "1.25rem" }}>
+              <div className="portal-form-row">
+                <div className="field">
+                  <label>Full Name</label>
+                  <input value={managerForm.fullName} required
+                    onChange={(e) => setManagerForm({ ...managerForm, fullName: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label>Email</label>
+                  <input type="email" value={managerForm.email} required
+                    onChange={(e) => setManagerForm({ ...managerForm, email: e.target.value })} />
+                </div>
+                <div className="field">
+                  <label>Temporary Password</label>
+                  <input type="password" value={managerForm.password} required
+                    onChange={(e) => setManagerForm({ ...managerForm, password: e.target.value })} />
+                </div>
+              </div>
+              <button type="submit" className="btn btn-solid">Create Manager Account</button>
+            </form>
+          )}
+        </section>
+      )}
 
       {canCreate && (
         <div style={{ marginBottom: "1rem" }}>

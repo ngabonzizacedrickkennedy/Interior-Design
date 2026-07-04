@@ -29,6 +29,7 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final WalletTransactionRepository transactionRepository;
     private final ServiceRequestService serviceRequestService;
+    private final ProjectService projectService;
 
     public WalletResponse getOrCreate(Long callerUserId) {
         return toResponse(getOrCreateWallet(callerUserId));
@@ -67,6 +68,7 @@ public class WalletService {
         request.setInvestmentStatus(InvestmentStatus.INVESTED);
         request.setInvestedAmount(body.amount());
         request.setInvestedAt(LocalDateTime.now());
+        projectService.markReadyIfFunded(request.getId());
 
         transactionRepository.save(WalletTransaction.builder()
                 .wallet(wallet)

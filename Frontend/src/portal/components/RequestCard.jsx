@@ -70,6 +70,12 @@ export function RequestCard({ request, onWithdraw }) {
           </div>
         </div>
 
+        {isDraft && (
+          <div className="request-card__hint">
+            This request is unfinished — pick up right where you left off.
+          </div>
+        )}
+
         {displayStatus === "NOT_ASSESSED" && (
           <div className="request-card__hint">
             AI assessment may still be pending —{" "}
@@ -92,10 +98,10 @@ export function RequestCard({ request, onWithdraw }) {
           {isDraft && (
             <button
               type="button"
-              className="btn"
+              className="btn btn-solid"
               onClick={() => navigate(`/portal/requests/new?draftId=${request.id}`)}
             >
-              Edit
+              Continue
             </button>
           )}
           {canWithdraw && (

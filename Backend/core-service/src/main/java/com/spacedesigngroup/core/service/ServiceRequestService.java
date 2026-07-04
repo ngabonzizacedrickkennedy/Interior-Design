@@ -34,6 +34,7 @@ public class ServiceRequestService {
     private final RequestAttachmentRepository attachmentRepository;
     private final AiAssessmentRepository assessmentRepository;
     private final S3Service s3Service;
+    private final AutoQuotationTriggerService autoQuotationTriggerService;
 
     public List<ServiceRequestResponse> findAll() {
         return requestRepository.findAll().stream().map(this::toResponse).toList();
@@ -136,7 +137,16 @@ public class ServiceRequestService {
 
         entity.setBudgetLimit(entity.getBudgetMax());
         entity.setExecutionStatus(RequestStatus.NEW);
-        return toResponse(requestRepository.save(entity));
+        ServiceRequest saved = requestRepository.save(entity);
+        triggerAutoAssessmentAndQuotation(saved);
+        return toResponse(saved);
+    }
+
+    private void triggerAutoAssessmentAndQuotation(ServiceRequest request) {
+        try {
+            autoQuotationTriggerService.runFor(request.getId());
+        } catch (Exception ignored) {
+        }
     }
 
     public void withdraw(Long id, Long callerUserId) {

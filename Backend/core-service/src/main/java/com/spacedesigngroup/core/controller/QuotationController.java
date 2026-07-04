@@ -74,4 +74,22 @@ public class QuotationController {
     public QuotationResponse requestChange(@PathVariable Long id) {
         return service.requestChange(id);
     }
+
+    @PatchMapping("/{id}/admit")
+    @PreAuthorize("hasAnyRole('PROJECT_MANAGER','ADMIN')")
+    public QuotationResponse admit(@PathVariable Long id) {
+        return service.admit(id);
+    }
+
+    @PatchMapping("/{id}/deny")
+    @PreAuthorize("hasAnyRole('PROJECT_MANAGER','ADMIN')")
+    public QuotationResponse deny(@PathVariable Long id) {
+        return service.deny(id);
+    }
+
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasRole('CLIENT')")
+    public QuotationResponse reject(@PathVariable Long id) {
+        return service.reject(id);
+    }
 }

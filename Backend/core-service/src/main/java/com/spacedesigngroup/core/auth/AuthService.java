@@ -64,6 +64,20 @@ public class AuthService {
         return challengeOrSignIn(saved);
     }
 
+    public User createManager(com.spacedesigngroup.core.dto.CreateManagerRequest request) {
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException("Email already in use: " + request.email());
+        }
+        User user = User.builder()
+                .fullName(request.fullName())
+                .email(request.email())
+                .passwordHash(passwordEncoder.encode(request.password()))
+                .role(Role.PROJECT_MANAGER)
+                .firstLoginVerified(true)
+                .build();
+        return userRepository.save(user);
+    }
+
     public LoginResponse login(LoginRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password()));

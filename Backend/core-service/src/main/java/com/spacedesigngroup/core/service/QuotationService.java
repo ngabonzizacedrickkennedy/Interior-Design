@@ -4,6 +4,9 @@ import com.spacedesigngroup.core.common.exception.ResourceNotFoundException;
 import com.spacedesigngroup.core.dto.LineItemRequest;
 import com.spacedesigngroup.core.dto.QuotationResponse;
 import com.spacedesigngroup.core.dto.LineItemResponse;
+import com.spacedesigngroup.core.model.AiAssessment;
+import com.spacedesigngroup.core.model.AssessmentVerdict;
+import com.spacedesigngroup.core.model.InvestmentStatus;
 import com.spacedesigngroup.core.model.ProjectRecord;
 import com.spacedesigngroup.core.model.ProjectStatus;
 import com.spacedesigngroup.core.model.Quotation;
@@ -92,6 +95,55 @@ public class QuotationService {
         return toResponse(quotationRepository.save(quotation));
     }
 
+    public void generateFromAssessment(ServiceRequest request, AiAssessment assessment) {
+        if (quotationRepository.existsByRequestId(request.getId())) {
+            return;
+        }
+        boolean sufficient = assessment.getVerdict() == AssessmentVerdict.SUFFICIENT;
+        BigDecimal recommendedAmount = sufficient
+                ? request.getBudgetLimit()
+                : assessment.getRecommendedBudgetMax();
+
+        Quotation quotation = Quotation.builder()
+                .request(request)
+                .aiGenerated(true)
+                .aiVerdict(assessment.getVerdict().name())
+                .aiReasoning(assessment.getReasoning())
+                .aiRecommendedAmount(recommendedAmount)
+                .approvalState(QuotationStatus.AWAITING_ADMIN_REVIEW)
+                .build();
+        quotationRepository.save(quotation);
+    }
+
+    public QuotationResponse admit(Long id) {
+        Quotation quotation = getOrThrow(id);
+        if (quotation.getApprovalState() != QuotationStatus.AWAITING_ADMIN_REVIEW) {
+            throw new IllegalStateException("Only a quotation awaiting review can be admitted.");
+        }
+        boolean sufficient = "SUFFICIENT".equals(quotation.getAiVerdict());
+        String description = sufficient
+                ? "AI-confirmed project estimate — " + quotation.getAiReasoning()
+                : "AI-recommended budget increase — " + quotation.getAiReasoning();
+        QuotationLineItem item = QuotationLineItem.builder()
+                .quotation(quotation)
+                .itemDescription(description)
+                .baseCost(quotation.getAiRecommendedAmount())
+                .build();
+        quotation.getLineItems().add(item);
+        recalculate(quotation);
+        quotation.setApprovalState(QuotationStatus.PENDING_APPROVAL);
+        return toResponse(quotationRepository.save(quotation));
+    }
+
+    public QuotationResponse deny(Long id) {
+        Quotation quotation = getOrThrow(id);
+        if (quotation.getApprovalState() != QuotationStatus.AWAITING_ADMIN_REVIEW) {
+            throw new IllegalStateException("Only a quotation awaiting review can be denied.");
+        }
+        quotation.setApprovalState(QuotationStatus.DRAFT);
+        return toResponse(quotationRepository.save(quotation));
+    }
+
     public QuotationResponse approve(Long id) {
         Quotation quotation = getOrThrow(id);
         quotation.setApprovalState(QuotationStatus.APPROVED);
@@ -99,7 +151,17 @@ public class QuotationService {
         ServiceRequest request = quotation.getRequest();
         request.setExecutionStatus(RequestStatus.IN_PROGRESS);
         requestRepository.save(request);
-        cascadeCreateProject(quotation);
+        ProjectStatus status = request.getInvestmentStatus() == InvestmentStatus.INVESTED
+                ? ProjectStatus.READY : ProjectStatus.PENDING;
+        upsertProject(request, status);
+        return toResponse(quotation);
+    }
+
+    public QuotationResponse reject(Long id) {
+        Quotation quotation = getOrThrow(id);
+        quotation.setApprovalState(QuotationStatus.REJECTED);
+        quotationRepository.save(quotation);
+        upsertProject(quotation.getRequest(), ProjectStatus.NOT_READY);
         return toResponse(quotation);
     }
 
@@ -109,29 +171,35 @@ public class QuotationService {
         return toResponse(quotationRepository.save(quotation));
     }
 
-    private void cascadeCreateProject(Quotation quotation) {
-        ServiceRequest request = quotation.getRequest();
-        String milestonesJson = "[" +
-                "{\"name\":\"Project kickoff and site survey\",\"isAchieved\":false}," +
-                "{\"name\":\"Design concept approval\",\"isAchieved\":false}," +
-                "{\"name\":\"Materials and furniture procurement\",\"isAchieved\":false}," +
-                "{\"name\":\"Installation and fit-out\",\"isAchieved\":false}," +
-                "{\"name\":\"Final styling and client handover\",\"isAchieved\":false}" +
-                "]";
-        ProjectRecord project = ProjectRecord.builder()
-                .client(request.getClient())
-                .milestoneChecklistJson(milestonesJson)
-                .visualProgressPercent(0)
-                .operationalStatus(ProjectStatus.PLANNING)
-                .build();
-        ProjectRecord saved = projectRepository.save(project);
-        TaskAssignment initialTask = TaskAssignment.builder()
-                .project(saved)
-                .taskTitle("Project kickoff and site survey")
-                .deadlineDate(LocalDate.now().plusDays(14))
-                .isCompleted(false)
-                .build();
-        taskRepository.save(initialTask);
+    private void upsertProject(ServiceRequest request, ProjectStatus status) {
+        ProjectRecord project = projectRepository.findByRequestId(request.getId()).orElse(null);
+        if (project == null) {
+            String milestonesJson = "[" +
+                    "{\"name\":\"Project kickoff and site survey\",\"isAchieved\":false}," +
+                    "{\"name\":\"Design concept approval\",\"isAchieved\":false}," +
+                    "{\"name\":\"Materials and furniture procurement\",\"isAchieved\":false}," +
+                    "{\"name\":\"Installation and fit-out\",\"isAchieved\":false}," +
+                    "{\"name\":\"Final styling and client handover\",\"isAchieved\":false}" +
+                    "]";
+            ProjectRecord saved = projectRepository.save(ProjectRecord.builder()
+                    .client(request.getClient())
+                    .request(request)
+                    .milestoneChecklistJson(milestonesJson)
+                    .visualProgressPercent(0)
+                    .operationalStatus(status)
+                    .build());
+            if (status == ProjectStatus.READY) {
+                taskRepository.save(TaskAssignment.builder()
+                        .project(saved)
+                        .taskTitle("Project kickoff and site survey")
+                        .deadlineDate(LocalDate.now().plusDays(14))
+                        .isCompleted(false)
+                        .build());
+            }
+            return;
+        }
+        project.setOperationalStatus(status);
+        projectRepository.save(project);
     }
 
     private void recalculate(Quotation quotation) {
@@ -163,7 +231,11 @@ public class QuotationService {
                 q.getPriceSubtotal(),
                 q.getCalculatedTax(),
                 q.getFinalTotal(),
-                q.getApprovalState()
+                q.getApprovalState(),
+                q.isAiGenerated(),
+                q.getAiVerdict(),
+                q.getAiReasoning(),
+                q.getAiRecommendedAmount()
         );
     }
 }

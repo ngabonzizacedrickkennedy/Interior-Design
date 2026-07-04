@@ -38,6 +38,9 @@ export function wizardReducer(state, action) {
     case "SET_STEP":
       return { ...state, step: action.step };
 
+    case "APPLY_LOCAL_FIELDS":
+      return { ...state, fields: { ...state.fields, ...action.fields } };
+
     case "SET_LOADING":
       return { ...state, loading: action.value };
 

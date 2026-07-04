@@ -3,12 +3,15 @@ package com.spacedesigngroup.core.controller;
 import com.spacedesigngroup.core.service.AuditService;
 
 
+import com.spacedesigngroup.core.auth.AuthService;
+import com.spacedesigngroup.core.dto.CreateManagerRequest;
 import com.spacedesigngroup.core.dto.RoleChangeRequest;
 import com.spacedesigngroup.core.auth.User;
 import com.spacedesigngroup.core.auth.UserRepository;
 import com.spacedesigngroup.core.common.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,15 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final AuthService authService;
+
+    @PostMapping("/managers")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<User> createManager(@Valid @RequestBody CreateManagerRequest request) {
+        User saved = authService.createManager(request);
+        auditService.record(saved.getId(), "Manager account created by admin");
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    }
 
     @GetMapping("/users")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")

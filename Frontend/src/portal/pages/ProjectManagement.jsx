@@ -5,6 +5,7 @@ import { getClientByUser } from "../../api/actions/clients";
 import "../PortalLayout.css";
 
 const STATUS_BADGE = {
+  NOT_READY: "not-ready", PENDING: "pending", READY: "ready",
   PLANNING: "pending", ACTIVE: "active", ON_HOLD: "review",
   COMPLETED: "completed", CANCELLED: "cancelled",
 };
@@ -102,7 +103,7 @@ export function ProjectManagement() {
                   <select style={{ marginTop: "0.5rem", fontSize: "0.8rem" }}
                     value={p.operationalStatus}
                     onChange={(e) => handleStatusChange(p.id, e.target.value)}>
-                    {["PLANNING", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"].map((s) => (
+                    {["NOT_READY", "PENDING", "READY", "PLANNING", "ACTIVE", "ON_HOLD", "COMPLETED", "CANCELLED"].map((s) => (
                       <option key={s} value={s}>{s.replace("_", " ")}</option>
                     ))}
                   </select>

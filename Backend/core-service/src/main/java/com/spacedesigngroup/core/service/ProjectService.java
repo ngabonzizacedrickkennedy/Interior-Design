@@ -50,6 +50,15 @@ public class ProjectService {
         return toResponse(projectRepository.save(project));
     }
 
+    public void markReadyIfFunded(Long requestId) {
+        projectRepository.findByRequestId(requestId).ifPresent(project -> {
+            if (project.getOperationalStatus() == ProjectStatus.PENDING) {
+                project.setOperationalStatus(ProjectStatus.READY);
+                projectRepository.save(project);
+            }
+        });
+    }
+
     private void recalculateProgress(ProjectRecord project, List<MilestoneItem> milestones) {
         if (milestones.isEmpty()) {
             project.setVisualProgressPercent(0);
