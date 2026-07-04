@@ -82,6 +82,7 @@ export function PaymentMethodPicker({ onChange }) {
               <input
                 type="text"
                 placeholder="As shown on card"
+                autoComplete="off"
                 value={card.name}
                 onChange={(e) => setCard({ ...card, name: e.target.value })}
               />
@@ -92,6 +93,7 @@ export function PaymentMethodPicker({ onChange }) {
                 type="text"
                 inputMode="numeric"
                 placeholder="1234 5678 9012 3456"
+                autoComplete="off"
                 value={formatCardNumber(card.number)}
                 onChange={(e) => setCard({ ...card, number: e.target.value.replace(/\D/g, "").slice(0, 16) })}
               />
@@ -101,6 +103,7 @@ export function PaymentMethodPicker({ onChange }) {
               <input
                 type="text"
                 placeholder="MM/YY"
+                autoComplete="off"
                 value={card.expiry}
                 onChange={(e) => setCard({ ...card, expiry: formatExpiry(e.target.value) })}
               />
@@ -112,6 +115,7 @@ export function PaymentMethodPicker({ onChange }) {
                 inputMode="numeric"
                 placeholder="•••"
                 maxLength={4}
+                autoComplete="off"
                 value={card.cvv}
                 onChange={(e) => setCard({ ...card, cvv: e.target.value.replace(/\D/g, "").slice(0, 4) })}
               />
