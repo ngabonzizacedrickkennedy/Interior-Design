@@ -2,6 +2,7 @@ import { useEffect, useReducer, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { wizardReducer, initialWizardState } from "./wizardReducer";
 import { createDraftRequest, updateDraftRequest, submitRequest, getRequestById } from "../../api/actions/requests";
+import { useToast } from "../../components/toast/ToastContext";
 import { WizardProgressBar } from "./WizardProgressBar";
 import { StepRoomPhotos } from "./steps/StepRoomPhotos";
 import { StepDimensions } from "./steps/StepDimensions";
@@ -31,6 +32,7 @@ const STEPS = [
 
 function buildWizardPayload(fields) {
   return {
+    requestName: fields.requestName || null,
     roomType: fields.roomType || null,
     requestDetails: fields.requestDetails || null,
     lengthMeters: fields.lengthMeters === "" ? null : Number(fields.lengthMeters),
@@ -56,6 +58,7 @@ function buildWizardPayload(fields) {
 
 export function NewRequestWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialWizardState);
+  const { showSuccess, showError } = useToast();
   const [searchParams] = useSearchParams();
   const draftId = searchParams.get("draftId");
   const navigate = useNavigate();
@@ -98,6 +101,7 @@ export function NewRequestWizard() {
       dispatch({ type: "SET_STEP", step: Math.min(state.step + 1, STEPS.length - 1) });
     } catch (err) {
       dispatch({ type: "SET_ERROR", error: err.message });
+      showError(err.message || "Failed to save your progress. Please try again.");
     }
   }
 
@@ -112,10 +116,12 @@ export function NewRequestWizard() {
     try {
       await updateDraftRequest(state.requestId, buildWizardPayload(state.fields));
       await submitRequest(state.requestId);
+      showSuccess("Request submitted successfully!");
       navigate("/portal/dashboard");
     } catch (err) {
       dispatch({ type: "SET_ERROR", error: err.message });
       dispatch({ type: "SET_SAVING", value: false });
+      showError(err.message || "Failed to submit request. Please try again.");
     }
   }
 

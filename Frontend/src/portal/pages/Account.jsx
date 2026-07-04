@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { getMyWallet, getMyWalletTransactions, deposit, invest } from "../../api/actions/wallet";
 import { getMyRequests } from "../../api/actions/requests";
+import { PaymentMethodPicker } from "../components/PaymentMethodPicker";
+import { useToast } from "../../components/toast/ToastContext";
 import "../PortalLayout.css";
 
-const DEPOSIT_METHODS = ["Bank", "Visa", "Other"];
-
 export function Account() {
+  const { showSuccess, showError } = useToast();
   const [wallet, setWallet] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [depositForm, setDepositForm] = useState({ amount: "", method: "Bank" });
+  const [depositForm, setDepositForm] = useState({ amount: "" });
+  const [payment, setPayment] = useState({ method: "Bank Transfer", valid: true });
   const [depositSaving, setDepositSaving] = useState(false);
 
   const [investForm, setInvestForm] = useState({ requestId: "", amount: "" });
@@ -57,13 +59,15 @@ export function Account() {
     setDepositSaving(true);
     setError(null);
     try {
-      const updated = await deposit({ amount: Number(depositForm.amount), method: depositForm.method });
+      const updated = await deposit({ amount: Number(depositForm.amount), method: payment.method });
       setWallet(updated);
-      setDepositForm({ amount: "", method: "Bank" });
+      setDepositForm({ amount: "" });
       const tx = await getMyWalletTransactions();
       setTransactions(tx);
+      showSuccess("Deposit successful!");
     } catch (e) {
       setError(e.message);
+      showError(e.message || "Deposit failed. Please try again.");
     } finally {
       setDepositSaving(false);
     }
@@ -80,8 +84,10 @@ export function Account() {
       const [tx, reqs] = await Promise.all([getMyWalletTransactions(), getMyRequests()]);
       setTransactions(tx);
       setRequests(reqs);
+      showSuccess("Investment successful!");
     } catch (e) {
       setError(e.message);
+      showError(e.message || "Investment failed. Please try again.");
     } finally {
       setInvestSaving(false);
     }
@@ -111,21 +117,15 @@ export function Account() {
       <section className="portal-section">
         <h2 className="portal-section__title">Deposit Funds</h2>
         <form onSubmit={handleDeposit}>
-          <div className="portal-form-row">
-            <div className="field">
-              <label>Amount</label>
-              <input type="number" min="0" step="0.01" required value={depositForm.amount}
-                onChange={(e) => setDepositForm({ ...depositForm, amount: e.target.value })} />
-            </div>
-            <div className="field">
-              <label>Method</label>
-              <select value={depositForm.method}
-                onChange={(e) => setDepositForm({ ...depositForm, method: e.target.value })}>
-                {DEPOSIT_METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
+          <div className="field field--full" style={{ maxWidth: 220, marginBottom: "1.25rem" }}>
+            <label>Amount</label>
+            <input type="number" min="0" step="0.01" required value={depositForm.amount}
+              onChange={(e) => setDepositForm({ ...depositForm, amount: e.target.value })} />
           </div>
-          <button type="submit" className="btn btn-solid" disabled={depositSaving}>
+
+          <PaymentMethodPicker onChange={setPayment} />
+
+          <button type="submit" className="btn btn-solid" disabled={depositSaving || !payment.valid}>
             {depositSaving ? "Depositing..." : "Deposit"}
           </button>
         </form>
@@ -145,7 +145,7 @@ export function Account() {
                   <option value="">Select a request</option>
                   {investableRequests.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.roomType || "Request"} #{r.id} — {Number(r.budgetLimit || 0).toLocaleString()}
+                      {r.requestName || r.roomType || "Request"} — {Number(r.budgetLimit || 0).toLocaleString()}
                     </option>
                   ))}
                 </select>

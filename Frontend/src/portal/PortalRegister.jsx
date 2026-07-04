@@ -4,6 +4,7 @@ import { useAuth } from "./auth/AuthContext";
 import { ROLE_DEFAULT_ROUTE } from "./auth/roles";
 import { MailIcon, LockIcon, UserIcon, EyeIcon, EyeOffIcon, ArrowLeftIcon } from "./authIcons";
 import { OtpStep } from "./OtpStep";
+import { useToast } from "../components/toast/ToastContext";
 import "./PortalLogin.css";
 
 const ROLES = [
@@ -13,6 +14,7 @@ const ROLES = [
 
 export function PortalRegister() {
   const { register, verifyOtp, loading, error, clearError } = useAuth();
+  const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,10 +44,12 @@ export function PortalRegister() {
 
     if (form.password !== form.confirmPassword) {
       setLocalError("Passwords do not match.");
+      showError("Passwords do not match.");
       return;
     }
     if (form.password.length < 6) {
       setLocalError("Password must be at least 6 characters.");
+      showError("Password must be at least 6 characters.");
       return;
     }
 
@@ -54,19 +58,21 @@ export function PortalRegister() {
       if (result.otpRequired) {
         setPendingEmail(result.email);
       } else {
+        showSuccess("Account created successfully!");
         goToDashboard(result.role);
       }
-    } catch {
-      // server error displayed via context
+    } catch (err) {
+      showError(err.message || "Registration failed. Please try again.");
     }
   }
 
   async function handleVerify(code) {
     try {
       const user = await verifyOtp(pendingEmail, code);
+      showSuccess("Account created successfully!");
       goToDashboard(user.role);
-    } catch {
-      // error displayed via context
+    } catch (err) {
+      showError(err.message || "Verification failed. Please try again.");
     }
   }
 

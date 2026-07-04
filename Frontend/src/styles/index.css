@@ -5,6 +5,7 @@
   --color-ink-soft: #5a5650;
   --color-accent: #b15a35;
   --color-line: rgba(33, 31, 26, 0.14);
+  --color-header-bg: rgba(243, 239, 231, 0.88);
 
   --font-display: "Fraunces", "Georgia", serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
@@ -12,6 +13,22 @@
   --container-width: 1200px;
   --space-section: 8rem;
   --breakpoint-sm: 900px;
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #1e2025;
+  --color-bg-alt: #131418;
+  --color-ink: #eceef1;
+  --color-ink-soft: #9aa0a8;
+  --color-accent: #d9825a;
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-header-bg: rgba(19, 20, 24, 0.85);
+}
+
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .field select,
+:root[data-theme="dark"] .field textarea {
+  background: var(--color-bg);
 }
 
 * {
@@ -36,6 +53,7 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 h1,

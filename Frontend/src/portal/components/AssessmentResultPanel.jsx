@@ -1,31 +1,25 @@
 import { useEffect, useState } from "react";
-import { buildAssessmentSpeech, isSpeechSupported, speak, stopSpeaking } from "../utils/speech";
+import { isSpeechSupported, isVoiceMuted, setVoiceMuted, stopSpeaking } from "../utils/speech";
 
 export function AssessmentResultPanel({ assessment, onRemain, onAdjust }) {
-  const [speaking, setSpeaking] = useState(false);
+  const [muted, setMuted] = useState(isVoiceMuted());
 
   useEffect(() => () => stopSpeaking(), []);
 
   if (!assessment) return null;
   const isPendingDecision = assessment.verdict === "INSUFFICIENT" && assessment.status === "PENDING";
 
-  function handleToggleSpeak() {
-    if (speaking) {
-      stopSpeaking();
-      setSpeaking(false);
-      return;
-    }
-    speak(buildAssessmentSpeech(assessment), {
-      onStart: () => setSpeaking(true),
-      onEnd: () => setSpeaking(false),
-    });
+  function handleToggleMute() {
+    const next = !muted;
+    setVoiceMuted(next);
+    setMuted(next);
   }
 
   return (
     <div className="portal-detail-panel">
       {isSpeechSupported() && (
-        <button type="button" className="btn assessment-speak-btn" onClick={handleToggleSpeak}>
-          {speaking ? "Stop" : "Listen to Recommendation"}
+        <button type="button" className="btn assessment-speak-btn" onClick={handleToggleMute}>
+          {muted ? "Unmute AI Voice" : "Mute AI Voice"}
         </button>
       )}
 

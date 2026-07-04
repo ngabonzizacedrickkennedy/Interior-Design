@@ -1,6 +1,11 @@
-import { NavLink, Outlet, Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { NavLink, Link, Outlet, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
-import { NAV_ICONS } from "./navIcons";
+import { useTheme } from "../theme/ThemeContext";
+import { NAV_ICONS, HomeIcon, UserCircleIcon, PaletteIcon } from "./navIcons";
+import { PortalHeader } from "./PortalHeader";
+import { SIDEBAR_COLORS, SIDEBAR_COLOR_STORAGE_KEY } from "./sidebarColors";
+import { useToast } from "../components/toast/ToastContext";
 import "./PortalLayout.css";
 
 const ROLE_MENUS = {
@@ -55,7 +60,22 @@ const ROLE_LABELS = {
 
 export function PortalLayout() {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { showSuccess } = useToast();
   const navigate = useNavigate();
+  const [sidebarColor, setSidebarColor] = useState(
+    () => (typeof window !== "undefined" && window.localStorage.getItem(SIDEBAR_COLOR_STORAGE_KEY)) || SIDEBAR_COLORS[0].value
+  );
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const colorPickerRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(e.target)) setColorPickerOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (!user) return <Navigate to="/portal/login" replace />;
 
@@ -64,15 +84,61 @@ export function PortalLayout() {
 
   function handleLogout() {
     logout();
+    showSuccess("You've been logged out.");
     navigate("/portal/login", { replace: true });
+  }
+
+  function handlePickSidebarColor(color) {
+    setSidebarColor(color);
+    window.localStorage.setItem(SIDEBAR_COLOR_STORAGE_KEY, color);
+    setColorPickerOpen(false);
   }
 
   return (
     <div className="portal-layout">
-      <aside className="portal-sidebar">
+      <aside className="portal-sidebar" style={{ "--sidebar-bg": sidebarColor }}>
         <div className="portal-sidebar__header">
           <span className="portal-sidebar__brand">Space Design Group</span>
           <span className="portal-sidebar__sub">Management Portal</span>
+        </div>
+
+        <div className="portal-sidebar__toolbar">
+          <Link to="/" className="portal-sidebar__tool" title="Back to website" aria-label="Back to website">
+            <HomeIcon />
+          </Link>
+          <Link to="profile" className="portal-sidebar__tool" title="Edit profile" aria-label="Edit profile">
+            <UserCircleIcon />
+          </Link>
+
+          <div className="portal-sidebar__spacer" />
+
+          <div className="portal-sidebar__color-picker" ref={colorPickerRef}>
+            <button
+              type="button"
+              className="portal-sidebar__tool"
+              title="Sidebar colour"
+              aria-label="Change sidebar colour"
+              onClick={() => setColorPickerOpen((v) => !v)}
+            >
+              <PaletteIcon />
+            </button>
+
+            {colorPickerOpen && (
+              <div className="portal-sidebar__color-popover" role="group" aria-label="Sidebar colour">
+                {SIDEBAR_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    className={"portal-sidebar__swatch" + (c.value === sidebarColor ? " is-selected" : "")}
+                    style={{ background: c.value }}
+                    title={c.name}
+                    aria-label={`Sidebar colour: ${c.name}`}
+                    onClick={() => handlePickSidebarColor(c.value)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <nav className="portal-sidebar__nav" aria-label="Portal modules">
@@ -114,6 +180,7 @@ export function PortalLayout() {
       </aside>
 
       <main className="portal-content">
+        <PortalHeader user={user} roleLabel={roleLabel} theme={theme} onToggleTheme={toggleTheme} />
         <Outlet />
       </main>
     </div>

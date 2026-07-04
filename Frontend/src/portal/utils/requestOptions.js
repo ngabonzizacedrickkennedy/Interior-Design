@@ -1,3 +1,21 @@
+export const REQUEST_NAME_OPTIONS = [
+  "Full Home Remodel",
+  "Living Room Refresh",
+  "Master Bedroom Makeover",
+  "Kitchen Transformation",
+  "Home Office Setup",
+  "Office Brightening",
+  "Nursery Design",
+  "Bathroom Renovation",
+  "Studio Apartment Optimization",
+  "Open-Concept Redesign",
+  "Outdoor Living Space",
+  "Home Theater Design",
+  "Dining Room Refresh",
+  "Small Space Solutions",
+  "Luxury Suite Upgrade",
+];
+
 export const ATTACHMENT_CATEGORIES = {
   ROOM_PHOTO: "Room Photos",
   FLOOR_PLAN: "Floor Plan / Sketch",

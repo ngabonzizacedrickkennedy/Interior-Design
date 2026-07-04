@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { MailIcon, ArrowLeftIcon } from "./authIcons";
+import { useToast } from "../components/toast/ToastContext";
 import "./PortalLogin.css";
 
 export function PortalForgotPassword() {
   const { forgotPassword, loading, error, clearError } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
 
@@ -15,8 +17,9 @@ export function PortalForgotPassword() {
     try {
       await forgotPassword(email);
       setSent(true);
-    } catch {
-      // error displayed via context
+      showSuccess("Reset link sent! Check your email.");
+    } catch (err) {
+      showError(err.message || "Could not send reset link. Please try again.");
     }
   }
 

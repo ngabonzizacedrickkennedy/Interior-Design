@@ -89,6 +89,7 @@ public class ServiceRequestService {
     }
 
     private void applyWizardFields(ServiceRequest entity, RequestWizardRequest body) {
+        if (body.requestName() != null) entity.setRequestName(body.requestName());
         if (body.roomType() != null) entity.setRoomType(body.roomType());
         if (body.requestDetails() != null) entity.setRequestDetails(body.requestDetails());
         if (body.lengthMeters() != null) entity.setLengthMeters(body.lengthMeters());
@@ -241,6 +242,7 @@ public class ServiceRequestService {
                 r.getExecutionStatus(),
                 r.getAssignedStaff() != null ? r.getAssignedStaff().getId() : null,
                 r.getAssignedStaff() != null ? r.getAssignedStaff().getFullName() : null,
+                r.getRequestName(),
                 r.getRoomType(),
                 r.getLengthMeters(),
                 r.getWidthMeters(),

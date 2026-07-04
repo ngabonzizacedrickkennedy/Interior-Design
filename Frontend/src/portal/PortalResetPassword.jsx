@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext";
 import { LockIcon, EyeIcon, EyeOffIcon, ArrowLeftIcon } from "./authIcons";
+import { useToast } from "../components/toast/ToastContext";
 import "./PortalLogin.css";
 
 export function PortalResetPassword() {
   const { resetPassword, loading, error, clearError } = useAuth();
+  const { showSuccess, showError } = useToast();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") || "";
 
@@ -22,18 +24,21 @@ export function PortalResetPassword() {
 
     if (password !== confirmPassword) {
       setLocalError("Passwords do not match.");
+      showError("Passwords do not match.");
       return;
     }
     if (password.length < 6) {
       setLocalError("Password must be at least 6 characters.");
+      showError("Password must be at least 6 characters.");
       return;
     }
 
     try {
       await resetPassword(token, password);
       setDone(true);
-    } catch {
-      // error displayed via context
+      showSuccess("Password updated successfully!");
+    } catch (err) {
+      showError(err.message || "Could not reset password. Please try again.");
     }
   }
 

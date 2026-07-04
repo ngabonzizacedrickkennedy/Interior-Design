@@ -21,6 +21,7 @@ public record ServiceRequestResponse(
         Long assignedStaffId,
         String assignedStaffName,
 
+        String requestName,
         String roomType,
         BigDecimal lengthMeters,
         BigDecimal widthMeters,

@@ -1,4 +1,5 @@
 import { WizardImageUploader } from "../WizardImageUploader";
+import { REQUEST_NAME_OPTIONS } from "../../utils/requestOptions";
 
 export function StepRoomPhotos({ state, setField, dispatch, requestId }) {
   const attachments = state.attachments.filter((a) => a.category === "ROOM_PHOTO");
@@ -10,6 +11,19 @@ export function StepRoomPhotos({ state, setField, dispatch, requestId }) {
         Upload multiple angles of the room in daylight if possible, showing the full space
         including corners and the ceiling.
       </p>
+
+      <div className="field field--full">
+        <label>Request name</label>
+        <select
+          value={state.fields.requestName}
+          onChange={(e) => setField("requestName", e.target.value)}
+        >
+          <option value="">Select a request type</option>
+          {REQUEST_NAME_OPTIONS.map((name) => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
+      </div>
 
       <div className="field field--full">
         <label>Room type</label>

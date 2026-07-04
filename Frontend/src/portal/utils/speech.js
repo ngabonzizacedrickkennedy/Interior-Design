@@ -1,9 +1,21 @@
+const MUTE_STORAGE_KEY = "sdg_ai_voice_muted";
+
 export function isSpeechSupported() {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
+export function isVoiceMuted() {
+  return typeof window !== "undefined" && window.localStorage.getItem(MUTE_STORAGE_KEY) === "true";
+}
+
+export function setVoiceMuted(muted) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MUTE_STORAGE_KEY, String(muted));
+  if (muted) stopSpeaking();
+}
+
 export function speak(text, { onStart, onEnd } = {}) {
-  if (!isSpeechSupported() || !text) return;
+  if (!isSpeechSupported() || !text || isVoiceMuted()) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = 0.95;

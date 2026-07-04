@@ -18,6 +18,7 @@ export function StepReview({ state }) {
 
       <div className="portal-detail-panel">
         <dl>
+          <dt>Request name</dt><dd>{f.requestName || "—"}</dd>
           <dt>Room type</dt><dd>{f.roomType || "—"}</dd>
           <dt>Description</dt><dd>{f.requestDetails || "—"}</dd>
           <dt>Dimensions</dt>

@@ -49,7 +49,9 @@ export function RequestCard({ request, onWithdraw }) {
         <span className={`badge badge--${DISPLAY_STATUS_BADGE[displayStatus]}`}>
           {DISPLAY_STATUS_LABELS[displayStatus]}
         </span>
-        <span className="request-card__id">#{request.id}</span>
+        {request.requestName && (
+          <span className="request-card__id">{request.requestName}</span>
+        )}
 
         <p className="request-card__title">{title}</p>
 

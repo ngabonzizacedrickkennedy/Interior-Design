@@ -11,6 +11,8 @@ import { Contact } from "./pages/Contact";
 import { RequestService } from "./pages/RequestService";
 import { ScrollToTop } from "./components/ScrollToTop";
 
+import { ThemeProvider } from "./theme/ThemeContext";
+import { ToastProvider } from "./components/toast/ToastContext";
 import { AuthProvider } from "./portal/auth/AuthContext";
 import { PortalLogin } from "./portal/PortalLogin";
 import { PortalRegister } from "./portal/PortalRegister";
@@ -22,6 +24,7 @@ import { ClientDashboard } from "./portal/pages/ClientDashboard";
 import { RequestDetail } from "./portal/pages/RequestDetail";
 import { Assessments } from "./portal/pages/Assessments";
 import { Account } from "./portal/pages/Account";
+import { Profile } from "./portal/pages/Profile";
 import { NewRequestWizard } from "./portal/wizard/NewRequestWizard";
 import { ServiceRequests } from "./portal/pages/ServiceRequests";
 import { Quotations } from "./portal/pages/Quotations";
@@ -46,47 +49,52 @@ function PublicLayout() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        {/* Public marketing site */}
-        <Route path="/" element={<PublicLayout />}>
-          <Route index                  element={<Home />} />
-          <Route path="portfolio"       element={<Portfolio />} />
-          <Route path="portfolio/:slug" element={<ProjectDetail />} />
-          <Route path="services"        element={<Services />} />
-          <Route path="about"           element={<About />} />
-          <Route path="testimonials"    element={<Testimonials />} />
-          <Route path="contact"         element={<Contact />} />
-          <Route path="request"         element={<RequestService />} />
-        </Route>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
+            {/* Public marketing site */}
+            <Route path="/" element={<PublicLayout />}>
+              <Route index                  element={<Home />} />
+              <Route path="portfolio"       element={<Portfolio />} />
+              <Route path="portfolio/:slug" element={<ProjectDetail />} />
+              <Route path="services"        element={<Services />} />
+              <Route path="about"           element={<About />} />
+              <Route path="testimonials"    element={<Testimonials />} />
+              <Route path="contact"         element={<Contact />} />
+              <Route path="request"         element={<RequestService />} />
+            </Route>
 
-        {/* Auth pages (no sidebar) */}
-        <Route path="/portal/login"           element={<PortalLogin />} />
-        <Route path="/portal/register"        element={<PortalRegister />} />
-        <Route path="/portal/forgot-password" element={<PortalForgotPassword />} />
-        <Route path="/portal/reset-password"  element={<PortalResetPassword />} />
+            {/* Auth pages (no sidebar) */}
+            <Route path="/portal/login"           element={<PortalLogin />} />
+            <Route path="/portal/register"        element={<PortalRegister />} />
+            <Route path="/portal/forgot-password" element={<PortalForgotPassword />} />
+            <Route path="/portal/reset-password"  element={<PortalResetPassword />} />
 
-        {/* Protected portal (role-based sidebar rendered by PortalLayout) */}
-        <Route path="/portal" element={<PortalLayout />}>
-          <Route index element={<Navigate to="requests" replace />} />
-          <Route path="clients"       element={<ClientManagement />} />
-          <Route path="dashboard"     element={<ClientDashboard />} />
-          <Route path="requests"      element={<ServiceRequests />} />
-          <Route path="requests/new"      element={<NewRequestWizard />} />
-          <Route path="requests/:id"      element={<RequestDetail />} />
-          <Route path="assessments"   element={<Assessments />} />
-          <Route path="account"       element={<Account />} />
-          <Route path="quotations"    element={<Quotations />} />
-          <Route path="projects"      element={<ProjectManagement />} />
-          <Route path="tasks"         element={<TasksResources />} />
-          <Route path="design-files"  element={<DesignPortfolio />} />
-          <Route path="feedback"      element={<CustomerFeedback />} />
-          <Route path="analytics"     element={<AnalyticsDashboard />} />
-          <Route path="notifications" element={<NotificationsHub />} />
-          <Route path="security"      element={<SecurityAccess />} />
-        </Route>
-      </Routes>
-    </AuthProvider>
+            {/* Protected portal (role-based sidebar rendered by PortalLayout) */}
+            <Route path="/portal" element={<PortalLayout />}>
+              <Route index element={<Navigate to="requests" replace />} />
+              <Route path="clients"       element={<ClientManagement />} />
+              <Route path="dashboard"     element={<ClientDashboard />} />
+              <Route path="requests"      element={<ServiceRequests />} />
+              <Route path="requests/new"      element={<NewRequestWizard />} />
+              <Route path="requests/:id"      element={<RequestDetail />} />
+              <Route path="assessments"   element={<Assessments />} />
+              <Route path="account"       element={<Account />} />
+              <Route path="profile"       element={<Profile />} />
+              <Route path="quotations"    element={<Quotations />} />
+              <Route path="projects"      element={<ProjectManagement />} />
+              <Route path="tasks"         element={<TasksResources />} />
+              <Route path="design-files"  element={<DesignPortfolio />} />
+              <Route path="feedback"      element={<CustomerFeedback />} />
+              <Route path="analytics"     element={<AnalyticsDashboard />} />
+              <Route path="notifications" element={<NotificationsHub />} />
+              <Route path="security"      element={<SecurityAccess />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

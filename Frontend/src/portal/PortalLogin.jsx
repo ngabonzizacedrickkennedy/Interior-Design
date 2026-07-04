@@ -4,10 +4,12 @@ import { useAuth } from "./auth/AuthContext";
 import { ROLE_DEFAULT_ROUTE } from "./auth/roles";
 import { MailIcon, LockIcon, EyeIcon, EyeOffIcon, ArrowLeftIcon } from "./authIcons";
 import { OtpStep } from "./OtpStep";
+import { useToast } from "../components/toast/ToastContext";
 import "./PortalLogin.css";
 
 export function PortalLogin() {
   const { login, verifyOtp, loading, error, clearError } = useAuth();
+  const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -30,19 +32,21 @@ export function PortalLogin() {
       if (result.otpRequired) {
         setPendingEmail(result.email);
       } else {
+        showSuccess("Welcome back!");
         goToDashboard(result.role);
       }
-    } catch {
-      // error displayed via context
+    } catch (err) {
+      showError(err.message || "Login failed. Please check your credentials.");
     }
   }
 
   async function handleVerify(code) {
     try {
       const user = await verifyOtp(pendingEmail, code);
+      showSuccess("Welcome back!");
       goToDashboard(user.role);
-    } catch {
-      // error displayed via context
+    } catch (err) {
+      showError(err.message || "Verification failed. Please try again.");
     }
   }
 

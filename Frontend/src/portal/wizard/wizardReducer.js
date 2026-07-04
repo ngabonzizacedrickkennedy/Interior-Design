@@ -2,6 +2,7 @@ export const initialWizardState = {
   requestId: null,
   step: 0,
   fields: {
+    requestName: "",
     roomType: "",
     requestDetails: "",
     lengthMeters: "",
@@ -71,6 +72,7 @@ export function wizardReducer(state, action) {
         ...state,
         requestId: action.request.id,
         fields: {
+          requestName: action.request.requestName || "",
           roomType: action.request.roomType || "",
           requestDetails: action.request.requestDetails || "",
           lengthMeters: action.request.lengthMeters ?? "",

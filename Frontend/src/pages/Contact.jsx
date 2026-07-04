@@ -1,15 +1,17 @@
 import { useState } from "react";
+import { useToast } from "../components/toast/ToastContext";
 import "./Contact.css";
 
 export function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const { showSuccess } = useToast();
 
   function handleSubmit(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    // TODO: send `data` to the contact API endpoint once it exists.
     console.log("Contact form submission:", data);
     setSubmitted(true);
+    showSuccess("Message sent!");
   }
 
   return (

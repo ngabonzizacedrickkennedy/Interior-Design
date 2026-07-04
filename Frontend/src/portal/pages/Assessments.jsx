@@ -104,7 +104,7 @@ export function Assessments() {
               key={r.id}
               className={"portal-section" + (r.id === highlightId ? " is-highlighted" : "")}
             >
-              <h2 className="portal-section__title">{r.roomType || "Request"} #{r.id}</h2>
+              <h2 className="portal-section__title">{r.requestName || r.roomType || "Request"}</h2>
               <p className="portal-page-sub" style={{ marginBottom: "1rem" }}>
                 {(r.requestDetails || "No description yet.").slice(0, 160)}
               </p>
@@ -124,7 +124,7 @@ export function Assessments() {
       ) : (
         assessed.map((r) => (
           <section key={r.id} className="portal-section">
-            <h2 className="portal-section__title">{r.roomType || "Request"} #{r.id}</h2>
+            <h2 className="portal-section__title">{r.requestName || r.roomType || "Request"}</h2>
             <AssessmentResultPanel
               assessment={r.latestAssessment}
               onRemain={() => handleRemain(r.id, r.latestAssessment.id)}

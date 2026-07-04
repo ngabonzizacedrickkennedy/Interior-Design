@@ -53,7 +53,7 @@ export function RequestDetail() {
       </Link>
 
       <h1 className="portal-page-title">
-        {request.roomType || "Request"} #{request.id}
+        {request.requestName || request.roomType || "Request"}
       </h1>
       <span className={`badge badge--${DISPLAY_STATUS_BADGE[displayStatus]}`}>
         {DISPLAY_STATUS_LABELS[displayStatus]}

@@ -54,6 +54,24 @@ public class S3Service {
         return key;
     }
 
+    public String uploadAvatar(MultipartFile file, Long userId) throws IOException {
+        String originalName = file.getOriginalFilename() == null ? "avatar" : file.getOriginalFilename();
+        String sanitized = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String key = "avatars/%d/%s-%s".formatted(userId, UUID.randomUUID(), sanitized);
+
+        try (S3Client s3 = client()) {
+            s3.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(bucketName)
+                            .key(key)
+                            .contentType(file.getContentType())
+                            .build(),
+                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+            );
+        }
+        return key;
+    }
+
     public String publicUrl(String s3Key) {
         return "https://%s.s3.%s.amazonaws.com/%s".formatted(bucketName, region, s3Key);
     }

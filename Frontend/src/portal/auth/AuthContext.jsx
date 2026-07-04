@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getToken, clearToken } from "../../api/client";
 import {
   login as loginAction,
@@ -8,6 +8,7 @@ import {
   resetPassword as resetPasswordAction,
   logout as logoutAction,
 } from "../../api/actions/auth";
+import { getMyProfile } from "../../api/actions/users";
 
 const AuthContext = createContext(null);
 
@@ -38,6 +39,25 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(() => parseToken(getToken()));
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
+
+  useEffect(() => {
+    if (!user || (user.avatarUrl !== undefined && user.fullName !== undefined)) return;
+    let cancelled = false;
+    getMyProfile()
+      .then((profile) => {
+        if (!cancelled) {
+          setUser((u) => (u ? { ...u, fullName: profile.fullName, avatarUrl: profile.avatarUrl || null } : u));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  function patchUser(patch) {
+    setUser((u) => (u ? { ...u, ...patch } : u));
+  }
 
   async function login(email, password) {
     setLoading(true);
@@ -135,6 +155,7 @@ export function AuthProvider({ children }) {
         forgotPassword,
         resetPassword,
         logout,
+        patchUser,
         loading,
         error,
         clearError,

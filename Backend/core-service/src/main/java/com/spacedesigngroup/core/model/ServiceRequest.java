@@ -42,6 +42,8 @@ public class ServiceRequest {
     @JoinColumn(name = "assigned_staff_id")
     private User assignedStaff;
 
+    private String requestName;
+
     private String roomType;
 
     private BigDecimal lengthMeters;

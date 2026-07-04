@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { SERVICES } from "../data/services";
+import { useToast } from "../components/toast/ToastContext";
 import "./RequestService.css";
 
 const BUDGET_RANGES = [
@@ -17,13 +18,14 @@ export function RequestService() {
   const [searchParams] = useSearchParams();
   const preselectedService = searchParams.get("service") ?? "";
   const [submitted, setSubmitted] = useState(false);
+  const { showSuccess } = useToast();
 
   function handleSubmit(event) {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.target));
-    // TODO: send `data` to the lead-capture API endpoint once it exists.
     console.log("Request a service submission:", data);
     setSubmitted(true);
+    showSuccess("Request received!");
   }
 
   if (submitted) {

@@ -123,6 +123,27 @@ export function WalletIcon() {
   );
 }
 
+export function UserCircleIcon() {
+  return (
+    <Icon>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="10" r="3" />
+      <path d="M6 19c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5" />
+    </Icon>
+  );
+}
+
+export function PaletteIcon() {
+  return (
+    <Icon>
+      <path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-1 1.2-1.9-.4-.6-.1-1.4.6-1.5H15a4 4 0 0 0 4-4c0-5.8-3.6-10.6-7-10.6Z" />
+      <circle cx="8" cy="11" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none" />
+      <circle cx="16" cy="11" r="1" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
 export const NAV_ICONS = {
   dashboard: HomeIcon,
   requests: ClipboardIcon,

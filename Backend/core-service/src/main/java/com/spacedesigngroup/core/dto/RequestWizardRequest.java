@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public record RequestWizardRequest(
+        String requestName,
         String roomType,
         String requestDetails,
         BigDecimal lengthMeters,
