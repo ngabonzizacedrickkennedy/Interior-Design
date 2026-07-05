@@ -132,7 +132,7 @@ export function Quotations() {
                   {q.approvalState?.replace(/_/g, " ")}
                 </span>
                 <span style={{ marginLeft: "0.75rem", fontSize: "0.85rem", color: "var(--color-ink-soft)" }}>
-                  {q.lineItems?.length || 0} line items &bull; Total: {q.finalTotal?.toLocaleString()} RWF
+                  {q.lineItems?.length || 0} line items &bull; Total: ${q.finalTotal?.toLocaleString()}
                 </span>
               </div>
               <button className="btn" style={{ fontSize: "0.8rem" }}
@@ -158,7 +158,7 @@ export function Quotations() {
                       {q.aiReasoning}
                     </p>
                     <p style={{ fontSize: "0.95rem", fontWeight: 600, margin: 0 }}>
-                      Recommended amount: {Number(q.aiRecommendedAmount || 0).toLocaleString()} RWF
+                      Recommended amount: ${Number(q.aiRecommendedAmount || 0).toLocaleString()}
                     </p>
 
                     {awaitingAdminReview && canEdit && (
@@ -181,7 +181,7 @@ export function Quotations() {
                       <thead>
                         <tr>
                           <th>Description</th>
-                          <th style={{ textAlign: "right" }}>Cost (RWF)</th>
+                          <th style={{ textAlign: "right" }}>Cost ($)</th>
                           {editable && <th style={{ width: 80 }}></th>}
                         </tr>
                       </thead>
@@ -189,7 +189,7 @@ export function Quotations() {
                         {(q.lineItems || []).map((li) => (
                           <tr key={li.id}>
                             <td>{li.itemDescription}</td>
-                            <td style={{ textAlign: "right" }}>{li.baseCost?.toLocaleString()}</td>
+                            <td style={{ textAlign: "right" }}>${li.baseCost?.toLocaleString()}</td>
                             {editable && (
                               <td>
                                 <button className="btn" style={{ padding: "0.2rem 0.55rem", fontSize: "0.75rem" }}
@@ -204,13 +204,13 @@ export function Quotations() {
                       <tfoot>
                         <tr>
                           <td style={{ color: "var(--color-ink-soft)", fontSize: "0.85rem" }}>Tax (18%)</td>
-                          <td style={{ textAlign: "right" }}>{q.calculatedTax?.toLocaleString()}</td>
+                          <td style={{ textAlign: "right" }}>${q.calculatedTax?.toLocaleString()}</td>
                           {editable && <td></td>}
                         </tr>
                         <tr>
                           <td style={{ fontWeight: 700, fontFamily: "var(--font-display)" }}>Total</td>
                           <td style={{ textAlign: "right", fontWeight: 700, color: "var(--color-accent)", fontFamily: "var(--font-display)", fontSize: "1.1rem" }}>
-                            {q.finalTotal?.toLocaleString()} RWF
+                            ${q.finalTotal?.toLocaleString()}
                           </td>
                           {editable && <td></td>}
                         </tr>
@@ -224,7 +224,7 @@ export function Quotations() {
                     <input style={{ flex: 2, minWidth: 160 }} placeholder="Line item description"
                       value={newItem.itemDescription}
                       onChange={(e) => setNewItem({ ...newItem, itemDescription: e.target.value })} />
-                    <input type="number" style={{ flex: 1, minWidth: 120 }} placeholder="Cost (RWF)"
+                    <input type="number" style={{ flex: 1, minWidth: 120 }} placeholder="Cost ($)"
                       value={newItem.baseCost}
                       onChange={(e) => setNewItem({ ...newItem, baseCost: e.target.value })} />
                     <button className="btn btn-solid" onClick={() => addItem(q.id)}>Add Item</button>

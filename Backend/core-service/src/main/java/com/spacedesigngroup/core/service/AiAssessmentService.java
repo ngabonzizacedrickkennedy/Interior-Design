@@ -104,6 +104,7 @@ public class AiAssessmentService {
                 a.getStyleSummary(),
                 a.getRoomConditionSummary(),
                 a.getStatus(),
+                a.isSystemTriggered(),
                 a.getCreatedAt()
         );
     }

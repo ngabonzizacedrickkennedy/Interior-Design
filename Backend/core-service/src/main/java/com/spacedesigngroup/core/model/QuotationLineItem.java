@@ -26,6 +26,7 @@ public class QuotationLineItem {
     private Quotation quotation;
 
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     private String itemDescription;
 
     @NotNull

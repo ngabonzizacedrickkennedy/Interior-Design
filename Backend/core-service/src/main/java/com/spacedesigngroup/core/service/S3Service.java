@@ -48,7 +48,7 @@ public class S3Service {
                             .key(key)
                             .contentType(file.getContentType())
                             .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+                    RequestBody.fromBytes(file.getBytes())
             );
         }
         return key;
@@ -66,7 +66,7 @@ public class S3Service {
                             .key(key)
                             .contentType(file.getContentType())
                             .build(),
-                    RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+                    RequestBody.fromBytes(file.getBytes())
             );
         }
         return key;

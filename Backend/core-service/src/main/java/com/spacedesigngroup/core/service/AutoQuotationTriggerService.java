@@ -42,6 +42,7 @@ public class AutoQuotationTriggerService {
                 .status(verdict == AssessmentVerdict.SUFFICIENT
                         ? AssessmentAcknowledgement.ACKNOWLEDGED
                         : AssessmentAcknowledgement.PENDING)
+                .systemTriggered(true)
                 .build();
         assessment = assessmentRepository.save(assessment);
         quotationService.generateFromAssessment(request, assessment);

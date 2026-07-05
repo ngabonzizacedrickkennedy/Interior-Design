@@ -75,7 +75,9 @@ public class AuthService {
                 .role(Role.PROJECT_MANAGER)
                 .firstLoginVerified(true)
                 .build();
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        mailService.sendManagerWelcomeEmail(saved.getEmail(), saved.getFullName(), request.password());
+        return saved;
     }
 
     public LoginResponse login(LoginRequest request) {

@@ -21,6 +21,7 @@ export function ClientManagement() {
   const [showManagerForm, setShowManagerForm] = useState(false);
   const [managerForm, setManagerForm] = useState({ fullName: "", email: "", password: "" });
   const [managerMessage, setManagerMessage] = useState(null);
+  const [creatingManager, setCreatingManager] = useState(false);
 
   const canEdit    = user?.role === "PROJECT_MANAGER" || user?.role === "ADMIN";
   const canCreate  = user?.role === "ADMIN";
@@ -45,6 +46,8 @@ export function ClientManagement() {
 
   async function handleCreateManager(e) {
     e.preventDefault();
+    if (creatingManager) return;
+    setCreatingManager(true);
     setManagerMessage(null);
     try {
       const created = await adminActions.createManager(managerForm);
@@ -53,6 +56,8 @@ export function ClientManagement() {
       setShowManagerForm(false);
     } catch (e) {
       setManagerMessage({ type: "error", text: e.message });
+    } finally {
+      setCreatingManager(false);
     }
   }
 
@@ -148,7 +153,9 @@ export function ClientManagement() {
                     onChange={(e) => setManagerForm({ ...managerForm, password: e.target.value })} />
                 </div>
               </div>
-              <button type="submit" className="btn btn-solid">Create Manager Account</button>
+              <button type="submit" className="btn btn-solid" disabled={creatingManager}>
+                {creatingManager ? "Creating..." : "Create Manager Account"}
+              </button>
             </form>
           )}
         </section>

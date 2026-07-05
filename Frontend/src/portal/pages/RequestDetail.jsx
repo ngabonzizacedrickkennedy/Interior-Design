@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { getRequestById } from "../../api/actions/requests";
 import { deriveDisplayStatus, DISPLAY_STATUS_LABELS, DISPLAY_STATUS_BADGE } from "../utils/requestStatus";
 import {
@@ -16,6 +17,8 @@ const CATEGORY_ORDER = ["ROOM_PHOTO", "FLOOR_PLAN", "STYLE_REFERENCE", "EXISTING
 
 export function RequestDetail() {
   const { id } = useParams();
+  const { user } = useAuth();
+  const isClient = user?.role === "CLIENT";
   const [request, setRequest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,8 +51,8 @@ export function RequestDetail() {
 
   return (
     <div>
-      <Link to="/portal/dashboard" className="btn" style={{ marginBottom: "1.5rem", display: "inline-flex" }}>
-        ← Back to Dashboard
+      <Link to={isClient ? "/portal/dashboard" : "/portal/requests"} className="btn" style={{ marginBottom: "1.5rem", display: "inline-flex" }}>
+        ← Back to {isClient ? "Dashboard" : "Service Requests"}
       </Link>
 
       <h1 className="portal-page-title">

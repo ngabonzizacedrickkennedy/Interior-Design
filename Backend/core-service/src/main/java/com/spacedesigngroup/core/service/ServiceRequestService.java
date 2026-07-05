@@ -240,6 +240,7 @@ public class ServiceRequestService {
                 latest.getStyleSummary(),
                 latest.getRoomConditionSummary(),
                 latest.getStatus(),
+                latest.isSystemTriggered(),
                 latest.getCreatedAt()
         );
 

@@ -1,6 +1,6 @@
 export function deriveDisplayStatus(request) {
   if (request.investmentStatus === "INVESTED") return "INVESTED";
-  if (request.latestAssessment) return "ASSESSED";
+  if (request.latestAssessment && !request.latestAssessment.systemTriggered) return "ASSESSED";
   if (request.executionStatus !== "DRAFT") return "NOT_ASSESSED";
   return "DRAFT";
 }

@@ -46,5 +46,8 @@ public class AiAssessment {
     private AssessmentAcknowledgement status = AssessmentAcknowledgement.PENDING;
 
     @Builder.Default
+    private boolean systemTriggered = false;
+
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

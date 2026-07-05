@@ -80,10 +80,16 @@ public class ProjectService {
     }
 
     private ProjectResponse toResponse(ProjectRecord p) {
+        var request = p.getRequest();
+        String requestName = request == null ? null
+                : request.getRequestName() != null && !request.getRequestName().isBlank()
+                        ? request.getRequestName() : request.getRoomType();
         return new ProjectResponse(
                 p.getId(),
                 p.getClient().getId(),
                 p.getClient().getContactName(),
+                request == null ? null : request.getId(),
+                requestName,
                 parseMilestones(p.getMilestoneChecklistJson()),
                 p.getVisualProgressPercent(),
                 p.getOperationalStatus()

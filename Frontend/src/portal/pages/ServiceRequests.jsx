@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import * as requestActions from "../../api/actions/requests";
 import { getAllClients, getClientByUser } from "../../api/actions/clients";
@@ -12,6 +13,7 @@ const BADGE_MAP = {
 
 export function ServiceRequests() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [clients, setClients]   = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -96,7 +98,7 @@ export function ServiceRequests() {
                 </select>
               </div>
               <div className="field">
-                <label>Budget (RWF)</label>
+                <label>Budget ($)</label>
                 <input type="number" min="0" value={form.budgetLimit} required
                   onChange={(e) => setForm({ ...form, budgetLimit: e.target.value })} />
               </div>
@@ -118,19 +120,21 @@ export function ServiceRequests() {
             <table className="portal-table">
               <thead>
                 <tr>
-                  <th>Client</th><th>Details</th>
-                  <th>Budget (RWF)</th><th>Status</th>
+                  {!isClient && <th>Client</th>}
+                  <th>Request Name</th>
+                  <th>Budget ($)</th><th>Status</th>
                   {canEdit && <th>Update Status</th>}
+                  {!isClient && <th>Actions</th>}
                 </tr>
               </thead>
               <tbody>
                 {requests.map((r) => (
                   <tr key={r.id}>
-                    <td>{r.clientName}</td>
+                    {!isClient && <td>{r.clientName}</td>}
                     <td style={{ maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {r.requestDetails}
+                      {r.requestName || r.roomType || "Untitled request"}
                     </td>
-                    <td>{r.budgetLimit?.toLocaleString()}</td>
+                    <td>${r.budgetLimit?.toLocaleString()}</td>
                     <td>
                       <span className={`badge badge--${BADGE_MAP[r.executionStatus] || "draft"}`}>
                         {r.executionStatus?.replace("_", " ")}
@@ -146,10 +150,22 @@ export function ServiceRequests() {
                         </select>
                       </td>
                     )}
+                    {!isClient && (
+                      <td>
+                        <button type="button" className="btn" style={{ fontSize: "0.78rem", padding: "0.25rem 0.65rem" }}
+                          onClick={() => navigate(`/portal/requests/${r.id}`)}>
+                          View
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {!requests.length && (
-                  <tr><td colSpan={5} className="portal-empty">No requests found.</td></tr>
+                  <tr>
+                    <td colSpan={isClient ? 3 : 4 + (canEdit ? 1 : 0) + 1} className="portal-empty">
+                      No requests found.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>

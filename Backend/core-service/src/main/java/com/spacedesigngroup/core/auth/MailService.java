@@ -33,6 +33,24 @@ public class MailService {
         mailSender.send(message);
     }
 
+    public void sendManagerWelcomeEmail(String toEmail, String fullName, String password) {
+        String loginLink = frontendUrl + "/portal/login";
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromAddress);
+        message.setTo(toEmail);
+        message.setSubject("Your Space Design Group manager account");
+        message.setText(
+                "Hi " + fullName + ",\n\n" +
+                "An administrator has created a Project Manager account for you on Space Design Group.\n\n" +
+                "Login URL: " + loginLink + "\n" +
+                "Email: " + toEmail + "\n" +
+                "Password: " + password + "\n\n" +
+                "Please sign in and change your password as soon as possible.\n\n" +
+                "— Space Design Group"
+        );
+        mailSender.send(message);
+    }
+
     public void sendPasswordResetEmail(String toEmail, String fullName, String token) {
         String resetLink = frontendUrl + "/portal/reset-password?token=" + token;
         SimpleMailMessage message = new SimpleMailMessage();

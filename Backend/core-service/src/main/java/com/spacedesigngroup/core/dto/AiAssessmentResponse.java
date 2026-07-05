@@ -16,5 +16,6 @@ public record AiAssessmentResponse(
         String styleSummary,
         String roomConditionSummary,
         AssessmentAcknowledgement status,
+        boolean systemTriggered,
         LocalDateTime createdAt
 ) {}
